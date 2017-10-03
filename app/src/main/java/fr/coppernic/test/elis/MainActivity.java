@@ -120,8 +120,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if(isScanning){
                     reader.abortScan();
+                    reader.close();
+                    powerMgmt.powerOff();
+                    isScanning = false;
                 } else {
-                    scan();
+                    powerMgmt.powerOn();
+                    reader.open();
                 }
             }
         });
@@ -141,6 +145,16 @@ public class MainActivity extends AppCompatActivity {
         reader.close();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
     private void scan(){
         isScanning = true;
         startTime = System.currentTimeMillis();
@@ -151,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         PowerMgmtFactory factory = PowerMgmtFactory.get()
             .setContext(this)
             // 500ms is neede by the reader to initialize
-            .setTimeToSleepAfterPowerOn(500)
+            .setTimeToSleepAfterPowerOn(1000)
             .setTimeToSleepAfterPowerOff(100);
 
 // In this example we are telling Powermgmt to use Barcore reader Opticon Mdi3100 that is installed on C-One
