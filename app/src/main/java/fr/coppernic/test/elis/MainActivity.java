@@ -39,11 +39,12 @@ public class MainActivity extends AppCompatActivity {
     private long average = 0;
     private long startTime = 0;
     private long endTime = 0;
+    private boolean isScanning = false;
     private final BarcodeListener barcodeListener = new BarcodeListener(){
 
         @Override
         public void onOpened(CpcResult.RESULT result) {
-
+            scan();
         }
 
         @Override
@@ -55,16 +56,21 @@ public class MainActivity extends AppCompatActivity {
         public void onScan(CpcResult.RESULT result, BarcodeReader.ScanResult scanResult) {
             endTime = System.currentTimeMillis();
             L.m(TAG, DEBUG, result.toString() + ", " + (scanResult==null?"null":scanResult));
-            if(scanResult != null){
-                ++counter;
-                long time = endTime - startTime;
-                Log.d(TAG, "time " + time);
-                average = ((average*(counter-1))+time)/counter;
-                tvData.setText(scanResult.dataToString());
-                tvCounter.setText("Counter : " + counter);
-                tvAverage.setText(average + " ms");
+            if(result == CpcResult.RESULT.CANCELLED){
+                isScanning = false;
+            } else {
+                if (scanResult != null) {
+                    ++counter;
+                    long time = endTime - startTime;
+                    Log.d(TAG, "time " + time);
+                    average = ((average * (counter - 1)) + time) / counter;
+                    tvData.setText(scanResult.dataToString());
+                    tvCounter.setText("Counter : " + counter);
+                    tvAverage.setText(average + " ms");
+                }
+                scan();
             }
-            scan();
+
         }
 
         @Override
@@ -112,7 +118,11 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                scan();
+                if(isScanning){
+                    reader.abortScan();
+                } else {
+                    scan();
+                }
             }
         });
     }
@@ -132,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void scan(){
+        isScanning = true;
         startTime = System.currentTimeMillis();
         reader.scan();
     }
